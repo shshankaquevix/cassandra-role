@@ -1,0 +1,42 @@
+---
+# test
+#- name: Add Cassandra repo
+#  yum_repository:
+#    name: Apache Cassandra
+#    baseurl: https://www.apache.org/dist/cassandra/redhat/311x/
+#    gpgcheck: yes
+#    repo_gcpcheck: yes
+#
+#    gpgkey: https://www.apache.org/dist/cassandra/KEYS
+
+- name: Copy configuration file for replication in mongodb
+  template:
+    src: cassandra.repo
+    dest: /etc/yum.repos.d/
+
+- name: update the system
+  yum:
+    name: "*"
+    state: latest
+
+- name: install cassandra package
+  yum: 
+    name: "{{ packages }}"
+  vars:
+    packages:
+    - cassandra
+
+- name: start service
+  command: /etc/init.d/cassandra start
+
+- name: Copy configuration file for replication in mongodb
+  template:
+    src: cassandra-yaml.j2
+    dest: /etc/cassandra/conf/cassandra.yaml
+  notify: cassandra
+
+
+- name: Start service cassandra, if not started
+  service:
+    name: cassandra
+    state: started
